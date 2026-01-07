@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Media Player</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --primary-bg: #ffffff;
+            --secondary-bg: #e2e8f0;
+            --text-color: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #cbd5e1;
+            --accent-color: #1a73e8;
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --spacing-sm: 10px;
+            --spacing-md: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 70px;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        .main-content-container {
+            padding-top: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+        }
+
+        .top-nav {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: var(--primary-bg);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-nav-main-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .top-nav .left-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        .app-name-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .sub-heading {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .top-nav .right-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .top-nav .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        #createFolderBtn img {
+            width: 25px;
+            height: 25px;
+        }
+
+        .media-list-screen,
+        .favorite-songs-screen,
+        .history-screen,
+        .folder-screen,
+        .songs-in-folder-screen {
+            display: flex;
+            flex-direction: column;
+            padding: 0 var(--spacing-md);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .media-tag {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin: 10px 0 5px;
+        }
+
+        .songs-in-folder-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+
+        .songs-in-folder-header .back-btn {
+            font-size: 1.5rem;
+            margin: 0;
+            padding: 0;
+        }
+
+        .media-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        /* New styles for the square For You grid */
+        .for-you-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .for-you-grid .media-item-square {
+            position: relative;
+            background-color: var(--primary-bg);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: none;
+            /* Removed moving effect */
+            padding-bottom: 100%;
+            /* Aspect ratio hack for square */
+        }
+
+        .for-you-grid .media-item-square-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            text-align: left;
+            padding: 10px;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            transition: background-image 0.5s ease;
+        }
+
+        .for-you-grid .media-item-square-content::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 50%);
+            z-index: 1;
+        }
+
+        .for-you-grid .media-item-square-info {
+            position: relative;
+            z-index: 2;
+        }
+
+        .for-you-grid .media-item-square .media-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: white;
+        }
+
+        .for-you-grid .media-item-square .media-artist {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: white;
+        }
+
+        .for-you-grid .media-item-square-actions {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .for-you-grid .media-item-square-actions .action-btn {
+            background-color: transparent;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.2rem;
+            padding: 8px;
+            position: absolute;
+            pointer-events: auto;
+            transition: background-color 0.2s ease;
+        }
+
+        .for-you-grid .media-item-square-actions .action-btn:hover {
+            background-color: transparent;
+        }
+
+        .for-you-grid .media-item-square-actions .menu-btn {
+            top: 10px;
+            right: 10px;
+        }
+
+        .for-you-grid .media-item-square-actions .love-btn {
+            bottom: 10px;
+            right: 10px;
+        }
+
+        .for-you-grid .media-item-square-actions .love-btn.loved {
+            color: #ff0000;
+        }
+
+        .media-list-horizontal {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 10px;
+            padding-bottom: 10px;
+            grid-template-columns: none;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .media-list-horizontal::-webkit-scrollbar {
+            display: none;
+        }
+
+        .media-list-horizontal>.media-item-static-bg {
+            flex-shrink: 0;
+            width: 80%;
+            /* Adjust width for mobile horizontal list */
+        }
+
+        @media (min-width: 600px) {
+            .media-list-horizontal>.media-item-static-bg {
+                width: 300px;
+            }
+        }
+
+        .media-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--primary-bg);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .media-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .media-item-dynamic-bg,
+        .media-item-static-bg {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .media-item-dynamic-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(0.8) contrast(1.2);
+            z-index: 1;
+            transition: filter 0.3s ease;
+        }
+
+        .media-item-content {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            position: relative;
+            z-index: 2;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            border-radius: var(--border-radius-md);
+            width: 100%;
+        }
+
+        .media-item-static-bg .media-item-content {
+            background: var(--primary-bg);
+            backdrop-filter: none;
+        }
+
+        .media-item-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: var(--border-radius-sm);
+            margin-right: 15px;
+        }
+
+        .media-item-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .media-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .media-artist {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .media-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 2;
+            padding-right: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s ease;
+        }
+
+        .action-btn:hover {
+            color: var(--text-color);
+        }
+
+        .love-btn.loved {
+            color: #ff0000;
+        }
+
+        .hidden-element {
+            display: none !important;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 15px;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            background-color: var(--primary-bg);
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+
+        .empty-state .icon {
+            font-size: 3rem;
+            color: var(--accent-color);
+        }
+
+        .empty-state .icon-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+
+        .folder-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .folder-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-bg);
+            border-radius: var(--border-radius-md);
+            padding: 20px 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .folder-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .folder-icon-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .folder-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .folder-song-count {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 2px 6px;
+            border-radius: 5px;
+        }
+
+        .folder-item .folder-menu-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: var(--text-color);
+        }
+
+        .search-sidebar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100vh;
+            background-color: var(--bg-color);
+            z-index: 2000;
+            transition: right 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .search-sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: var(--primary-bg);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+        }
+
+        .search-input-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius-md);
+            padding: 5px 10px;
+        }
+
+        .search-input-container input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            background: transparent;
+            color: var(--text-color);
+        }
+
+        .search-input-container .action-btn {
+            font-size: 1rem;
+            margin-left: 5px;
+            color: var(--text-secondary);
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .history-list-sidebar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .history-list-sidebar .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: var(--primary-bg);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-basis: calc(50% - 5px);
+        }
+
+        @media (min-width: 600px) {
+            .history-list-sidebar .history-item {
+                flex-basis: calc(33.333% - 7px);
+            }
+        }
+
+        @media (min-width: 900px) {
+            .history-list-sidebar .history-item {
+                flex-basis: calc(25% - 7.5px);
+            }
+        }
+
+        .history-list-sidebar .history-item:hover {
+            background-color: var(--secondary-bg);
+        }
+
+        .history-item-content {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            gap: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-item-content i {
+            color: var(--text-secondary);
+        }
+
+        .history-item .remove-history-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .bottom-nav-wrapper {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1500;
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: var(--primary-bg);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            height: 60px;
+            padding: 0;
+        }
+
+        .bottom-nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: #a0aec0;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            flex-grow: 1;
+            gap: 5px;
+            transition: color 0.2s ease;
+            position: relative;
+        }
+
+        .bottom-nav-button.active {
+            color: var(--text-color);
+        }
+
+        .bottom-nav-button i {
+            font-size: 1.2rem;
+            transition: font-size 0.2s ease;
+        }
+
+        /* Adjustments for the Favorites button text and icon */
+        .bottom-nav-button#favoriteBtn {
+            transform: none;
+            padding-bottom: 2px;
+        }
+
+        .bottom-nav-button#favoriteBtn .fas.fa-heart {
+            font-size: 2.2rem;
+            color: #e53e3e;
+            background-color: white;
+            border-radius: 50%;
+            padding: 10px;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .bottom-nav-button#favoriteBtn.active .fas.fa-heart {
+            color: #ff0000;
+        }
+
+        .folder-modal-bar {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            background-color: var(--primary-bg);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 3000;
+            transition: bottom 0.3s ease-in-out;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 15px;
+        }
+
+        .folder-modal-bar.active {
+            bottom: 0;
+        }
+
+        .folder-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .folder-modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .folder-list-modal {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .folder-item-modal {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .folder-item-modal:hover {
+            background-color: var(--border-color);
+        }
+
+        .create-folder-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .create-folder-input-container input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            background-color: var(--secondary-bg);
+            color: var(--text-color);
+        }
+
+        .create-folder-input-container button {
+            padding: 10px 15px;
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            width: auto;
+        }
+
+        .new-visualizer-loader {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            height: 30px;
+        }
+
+        .new-visualizer-loader.active {
+            display: flex;
+        }
+
+        .new-visualizer-bar {
+            width: 5px;
+            height: 5px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 0.6s cubic-bezier(0.6, 0.1, 0.4, 1) infinite alternate;
+        }
+
+        .new-visualizer-bar:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .new-visualizer-bar:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .new-visualizer-bar:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .new-visualizer-bar:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+
+        .new-visualizer-bar:nth-child(6) {
+            animation-delay: 0.5s;
+        }
+
+        .new-visualizer-bar:nth-child(7) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.5);
+            }
+        }
+
+        .loader-container {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 200px;
+        }
+
+        .loader-container.active {
+            display: flex;
+        }
+
+        .loader-wave {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            animation: wave 1.5s infinite ease-out;
+            position: absolute;
+            opacity: 0;
+        }
+
+        .loader-wave:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .loader-wave:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        .voice-to-text-ui {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 5000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .voice-to-text-ui.active {
+            display: flex;
+        }
+
+        .mic-wave-container {
+            width: 150px;
+            height: 150px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .mic-wave {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            animation: wave 1.5s infinite ease-out;
+            position: absolute;
+            opacity: 0;
+        }
+
+        .mic-wave:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .mic-wave:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        .voice-to-text-ui .mic-icon {
+            font-size: 3.5rem;
+            color: var(--accent-color);
+            z-index: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 75px;
+            height: 75px;
+            background-color: #fff;
+            border-radius: 50%;
+        }
+
+        .voice-to-text-ui p {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        @keyframes wave {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        @media (min-width: 601px) {
+            .media-list {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+
+            .for-you-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .top-nav {
+                padding: 10px;
+            }
+
+            .media-list-screen,
+            .favorite-songs-screen,
+            .history-screen,
+            .folder-screen,
+            .songs-in-folder-screen {
+                padding: 0;
+            }
+
+            .main-content-container {
+                padding: 0 var(--spacing-sm);
+                padding-top: var(--spacing-md);
+            }
+
+            .media-tag {
+                font-size: 1.2rem;
+                margin: 10px 10px 5px;
+            }
+
+            .media-list {
+                padding: 0 10px;
+            }
+
+            .for-you-grid {
+                padding: 0 10px;
+            }
+
+            .media-list-horizontal {
+                padding: 0 10px 15px 10px;
+            }
+
+            .media-item {
+                padding: 0;
+                box-shadow: none;
+            }
+
+            .media-item-dynamic-bg {
+                border-radius: var(--border-radius-md);
+            }
+
+            .media-item-thumbnail {
+                width: 50px;
+                height: 50px;
+            }
+
+            .media-title {
+                font-size: 0.9rem;
+            }
+
+            .media-artist {
+                font-size: 0.75rem;
+            }
+
+            .love-btn,
+            .folder-add-btn {
+                font-size: 1rem;
+            }
+
+            .bottom-nav-button {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="top-nav" id="topNav">
+        <div class="top-nav-main-row">
+            <div class="left-section">
+                <img src="profile.png" alt="Profile" class="profile-img">
+                <div class="app-name-container">
+                    <span class="app-name">Music Ally</span>
+                    <span class="sub-heading" id="topNavSubHeading">For You</span>
+                </div>
+            </div>
+            <div class="right-section">
+                <button class="action-btn" id="createFolderBtn">
+                    <img src="top_folder.png" alt="Add Folder">
+                </button>
+                <button class="action-btn" id="voiceSearchBtn"><i class="fas fa-microphone"></i></button>
+                <button class="action-btn" id="openSearchSidebarBtn"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="media-list-screen main-content-container" id="mediaListScreen">
+        <div class="loader-container active" id="forYouLoader">
+            <div class="loader-wave"></div>
+            <div class="loader-wave"></div>
+            <div class="loader-wave"></div>
+        </div>
+        <div class="for-you-grid" id="forYouSongsGrid"></div>
+        <div id="genreSongsContainer"></div>
+    </div>
+
+    <div class="favorite-songs-screen main-content-container hidden-element" id="favoriteSongsScreen">
+        <div class="media-list" id="favoriteSongsList"></div>
+    </div>
+
+    <div class="history-screen main-content-container hidden-element" id="historyScreen">
+        <p class="media-tag">Recently Played</p>
+        <div class="media-list" id="fullHistoryList"></div>
+
+        <p class="media-tag">Recent Searches</p>
+        <div class="history-list-sidebar" id="fullSearchHistoryList"></div>
+    </div>
+
+    <div class="folder-screen main-content-container hidden-element" id="folderScreen">
+        <div class="folder-list" id="folderList"></div>
+    </div>
+
+    <div class="songs-in-folder-screen main-content-container hidden-element" id="songsInFolderScreen">
+        <div class="songs-in-folder-header">
+            <button class="action-btn back-btn" id="backToFoldersBtn"><i class="fas fa-arrow-left"></i></button>
+            <h2 class="media-tag" id="folderSongsTitle"></h2>
+        </div>
+        <div class="media-list" id="folderSongsList"></div>
+    </div>
+
+    <div class="search-sidebar" id="searchSidebar">
+        <div class="sidebar-header">
+            <button id="closeSearchSidebarBtn" class="back-btn"><i class="fas fa-arrow-left"></i></button>
+            <div class="search-input-container">
+                <input type="text" id="searchSidebarInput" placeholder="Search for music...">
+                <button class="action-btn" id="searchSidebarBtn"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <div class="sidebar-content">
+            <div class="loader-container" id="searchLoader">
+                <div class="loader-wave"></div>
+                <div class="loader-wave"></div>
+                <div class="loader-wave"></div>
+            </div>
+            <div class="history-list-sidebar" id="searchHistoryList"></div>
+            <div class="media-list" id="searchResultsList"></div>
+        </div>
+    </div>
+
+    <div class="voice-to-text-ui" id="voiceToTextUI">
+        <div class="mic-wave-container">
+            <div class="mic-wave"></div>
+            <div class="mic-wave"></div>
+            <div class="mic-wave"></div>
+            <i class="fas fa-microphone mic-icon"></i>
+        </div>
+        <p id="voiceToTextStatus">What do you want to say?</p>
+    </div>
+
+    <div class="bottom-nav-wrapper">
+        <div class="bottom-nav">
+            <button class="bottom-nav-button active" id="onlineBtn"><i class="fas fa-headphones"></i> For You</button>
+            <button class="bottom-nav-button" id="offlineBtn"><i class="fas fa-download"></i> Offline</button>
+            <button class="bottom-nav-button" id="favoriteBtn"><i class="fas fa-heart"></i></button>
+            <button class="bottom-nav-button" id="historyBtn"><i class="fas fa-history"></i> History</button>
+            <button class="bottom-nav-button" id="folderBtn"><i class="fas fa-folder"></i> Folders</button>
+        </div>
+    </div>
+
+    <div id="folderModalBar" class="folder-modal-bar">
+        <div class="folder-modal-header">
+            <h3 id="folderModalTitle"></h3>
+            <button class="modal-close-btn" id="closeFolderModalBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="folderListModal" class="folder-list-modal hidden-element"></div>
+        <div id="createFolderSection" class="create-folder-section">
+            <div class="create-folder-input-container">
+                <input type="text" id="newFolderName" placeholder="New folder name...">
+                <button id="createFolderButton">Add</button>
+            </div>
+        </div>
+    </div>
+    <div id="songMenuModal" class="folder-modal-bar">
+        <div class="folder-modal-header">
+            <h3 id="songMenuTitle"></h3>
+            <button class="modal-close-btn" id="closeSongMenuModalBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="songMenuOptions" class="folder-list-modal">
+            <div class="folder-item-modal" id="toggleFavoriteOption">
+                <i class="fas fa-heart"></i>
+                <span>Add to Favourites</span>
+            </div>
+            <div class="folder-item-modal" id="toggleFolderOption">
+                <i class="fas fa-folder-plus"></i>
+                <span>Add to Folder</span>
+            </div>
+            <div class="folder-item-modal" id="deleteSongOption">
+                <i class="fas fa-trash-alt"></i>
+                <span>Delete Song</span>
+            </div>
+        </div>
+    </div>
+    <div id="folderMenuModal" class="folder-modal-bar">
+        <div class="folder-modal-header">
+            <h3 id="folderMenuTitle"></h3>
+            <button class="modal-close-btn" id="closeFolderMenuModalBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="folderMenuOptions" class="folder-list-modal">
+            <div class="folder-item-modal" id="renameFolderOption">
+                <i class="fas fa-edit"></i>
+                <span>Rename folder</span>
+            </div>
+            <div class="folder-item-modal" id="deleteFolderOption">
+                <i class="fas fa-trash-alt"></i>
+                <span>Delete folder</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+    <script>
+        // --- LOCAL STORAGE KEYS ---
+        const RECENT_SONGS_KEY = 'recentSongs';
+        const SEARCH_HISTORY_KEY = 'searchHistory';
+        const FAVOURITE_SONGS_KEY = 'favouriteSongs';
+        const FOLDERS_KEY = 'musicFolders';
+        const MEDIA_STORAGE_KEY = 'userMediaLinks';
+        const WELCOME_COMPLETED_KEY = 'welcomeCompleted';
+        const USER_GENRES_KEY = 'userSelectedGenres';
+
+        const API_URL = 'https://itunes.apple.com/search';
+
+        // --- GLOBAL DOM ELEMENTS ---
+        const mediaListScreen = document.getElementById('mediaListScreen');
+        const favoriteSongsScreen = document.getElementById('favoriteSongsScreen');
+        const historyScreen = document.getElementById('historyScreen');
+        const folderScreen = document.getElementById('folderScreen');
+        const songsInFolderScreen = document.getElementById('songsInFolderScreen');
+
+        const topNavSubHeading = document.getElementById('topNavSubHeading');
+        const forYouLoader = document.getElementById('forYouLoader');
+        const forYouSongsGrid = document.getElementById('forYouSongsGrid');
+        const genreSongsContainer = document.getElementById('genreSongsContainer');
+        const favoriteSongsList = document.getElementById('favoriteSongsList');
+        const fullHistoryList = document.getElementById('fullHistoryList');
+        const fullSearchHistoryList = document.getElementById('fullSearchHistoryList');
+        const folderList = document.getElementById('folderList');
+        const folderSongsTitle = document.getElementById('folderSongsTitle');
+        const folderSongsList = document.getElementById('folderSongsList');
+
+        const openSearchSidebarBtn = document.getElementById('openSearchSidebarBtn');
+        const searchSidebar = document.getElementById('searchSidebar');
+        const closeSearchSidebarBtn = document.getElementById('closeSearchSidebarBtn');
+        const searchSidebarInput = document.getElementById('searchSidebarInput');
+        const searchSidebarBtn = document.getElementById('searchSidebarBtn');
+        const searchResultsList = document.getElementById('searchResultsList');
+        const searchLoader = document.getElementById('searchLoader');
+        const createFolderBtn = document.getElementById('createFolderBtn');
+        const backToFoldersBtn = document.getElementById('backToFoldersBtn');
+        const folderModalBar = document.getElementById('folderModalBar');
+        const folderListModal = document.getElementById('folderListModal');
+        const folderModalTitle = document.getElementById('folderModalTitle');
+        const createFolderSection = document.getElementById('createFolderSection');
+        const newFolderNameInput = document.getElementById('newFolderName');
+        const createFolderButton = document.getElementById('createFolderButton');
+        const closeFolderModalBtn = document.getElementById('closeFolderModalBtn');
+        const songMenuModal = document.getElementById('songMenuModal');
+        const closeSongMenuModalBtn = document.getElementById('closeSongMenuModalBtn');
+        const songMenuTitle = document.getElementById('songMenuTitle');
+        const toggleFavoriteOption = document.getElementById('toggleFavoriteOption');
+        const toggleFolderOption = document.getElementById('toggleFolderOption');
+        const deleteSongOption = document.getElementById('deleteSongOption');
+        const folderMenuModal = document.getElementById('folderMenuModal');
+        const closeFolderMenuModalBtn = document.getElementById('closeFolderMenuModalBtn');
+        const folderMenuTitle = document.getElementById('folderMenuTitle');
+        const renameFolderOption = document.getElementById('renameFolderOption');
+        const deleteFolderOption = document.getElementById('deleteFolderOption');
+
+        const navButtons = document.querySelectorAll('.bottom-nav-button');
+
+        const voiceSearchBtn = document.getElementById('voiceSearchBtn');
+        const voiceToTextUI = document.getElementById('voiceToTextUI');
+        const voiceToTextStatus = document.getElementById('voiceToTextStatus');
+
+        let recentSongs = [];
+        let searchHistory = [];
+        let favouriteSongs = [];
+        let musicFolders = [];
+        let currentSongToAdd = null;
+        let activeSongForMenu = null;
+        let activeFolderForMenu = null;
+
+        const colorThief = new ColorThief();
+
+        // --- APP INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const hasCompletedWelcome = localStorage.getItem(WELCOME_COMPLETED_KEY);
+
+            if (!hasCompletedWelcome) {
+                window.location.href = 'Newuser.html';
+            } else {
+                initializeMainApp();
+            }
+        });
+
+        function initializeMainApp() {
+            initializeFolders();
+            loadRecentSongsFromStorage();
+            loadSearchHistoryFromStorage();
+            if (searchHistory.length === 0) {
+                addDefaultSearchQueries();
+            }
+            loadFavouriteSongsFromStorage();
+            checkInternetConnection();
+            fetchForYouSongs();
+            renderUserGenres();
+        }
+
+        function addDefaultSearchQueries() {
+            const defaultSongs = ["Pasoori", "Khalasi", "Excuses"];
+            defaultSongs.forEach(song => {
+                addSearchQueryToHistory(song);
+            });
+        }
+
+        // --- FOLDER & CORE APP LOGIC ---
+        function initializeFolders() {
+            loadFoldersFromStorage();
+            const allSongsFolderExists = musicFolders.some(folder => folder.name === 'All Songs');
+            if (!allSongsFolderExists) {
+                const allSongsFolder = { name: 'All Songs', songs: [] };
+                musicFolders.unshift(allSongsFolder);
+                saveFoldersToStorage();
+            }
+        }
+
+        function setActiveScreen(screenId) {
+            const screens = [mediaListScreen, favoriteSongsScreen, historyScreen, folderScreen, songsInFolderScreen];
+            screens.forEach(screen => screen.classList.add('hidden-element'));
+            document.getElementById(screenId).classList.remove('hidden-element');
+
+            const isFolderScreen = screenId === 'songsInFolderScreen';
+            document.getElementById('backToFoldersBtn').classList.toggle('hidden-element', !isFolderScreen);
+            document.getElementById('folderSongsTitle').classList.toggle('hidden-element', !isFolderScreen);
+        }
+
+        function setTopNavSubHeading(text) {
+            topNavSubHeading.textContent = text;
+        }
+
+        function checkInternetConnection() {
+            if (navigator.onLine) {
+                document.getElementById('onlineBtn').click();
+            } else {
+                document.getElementById('offlineBtn').click();
+            }
+        }
+        window.addEventListener('online', checkInternetConnection);
+        window.addEventListener('offline', checkInternetConnection);
+
+        openSearchSidebarBtn.addEventListener('click', () => {
+            searchSidebar.classList.add('active');
+            searchSidebar.classList.remove('hidden-element');
+            searchResultsList.innerHTML = '';
+            renderSearchHistory();
+        });
+
+        closeSearchSidebarBtn.addEventListener('click', () => {
+            searchSidebar.classList.remove('active');
+            searchResultsList.innerHTML = '';
+            searchSidebarInput.value = '';
+            searchHistoryList.classList.remove('hidden-element');
+        });
+
+        searchSidebarBtn.addEventListener('click', () => {
+            const query = searchSidebarInput.value.trim();
+            if (query) {
+                searchLoader.classList.add('active');
+                fetchMusicByTag(query, searchResultsList).finally(() => {
+                    searchLoader.classList.remove('active');
+                });
+                addSearchQueryToHistory(query);
+                searchHistoryList.classList.add('hidden-element');
+            } else {
+                alert('Please enter a search query.');
+            }
+        });
+
+        searchSidebarInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                searchSidebarBtn.click();
+            }
+        });
+
+        searchHistoryList.addEventListener('click', (e) => {
+            if (e.target.closest('.history-item') && !e.target.closest('.remove-history-btn')) {
+                const query = e.target.closest('.history-item').dataset.query;
+                searchSidebarInput.value = query;
+                searchSidebarBtn.click();
+            }
+            if (e.target.closest('.remove-history-btn')) {
+                const query = e.target.closest('.history-item').dataset.query;
+                removeSearchQueryFromHistory(query);
+            }
+        });
+
+        createFolderBtn.addEventListener('click', () => {
+            showFolderModalBar();
+        });
+
+        closeFolderModalBtn.addEventListener('click', () => {
+            folderModalBar.classList.remove('active');
+        });
+
+        closeSongMenuModalBtn.addEventListener('click', () => {
+            songMenuModal.classList.remove('active');
+        });
+
+        closeFolderMenuModalBtn.addEventListener('click', () => {
+            folderMenuModal.classList.remove('active');
+        });
+
+        createFolderButton.addEventListener('click', () => {
+            const folderName = newFolderNameInput.value.trim();
+            if (folderName && !musicFolders.some(folder => folder.name === folderName)) {
+                createFolder(folderName);
+                newFolderNameInput.value = '';
+                showFolderModalBar(currentSongToAdd);
+            } else if (musicFolders.some(folder => folder.name === folderName)) {
+                alert('A folder with this name already exists.');
+            } else {
+                alert('Please enter a folder name.');
+            }
+        });
+
+        backToFoldersBtn.addEventListener('click', () => {
+            setActiveScreen('folderScreen');
+            setTopNavSubHeading('Your Folders');
+            renderFolders();
+        });
+
+        toggleFavoriteOption.addEventListener('click', () => {
+            if (activeSongForMenu) {
+                toggleFavourite(activeSongForMenu, null);
+                songMenuModal.classList.remove('active');
+                renderFavouriteSongs();
+                renderFullHistory();
+                const folder = musicFolders.find(f => f.songs.some(s => s.id === activeSongForMenu.id));
+                if (folder) {
+                    showSongsInFolder(folder);
+                }
+            }
+        });
+
+        toggleFolderOption.addEventListener('click', () => {
+            if (activeSongForMenu) {
+                showFolderModalBar(activeSongForMenu);
+            }
+            songMenuModal.classList.remove('active');
+        });
+
+        deleteSongOption.addEventListener('click', () => {
+            if (activeSongForMenu && confirm(`Are you sure you want to delete "${activeSongForMenu.name}"?`)) {
+                console.log('Simulating deletion of song:', activeSongForMenu.name);
+                songMenuModal.classList.remove('active');
+            }
+        });
+
+        renameFolderOption.addEventListener('click', () => {
+            if (activeFolderForMenu) {
+                const newName = prompt(`Rename folder "${activeFolderForMenu.name}":`);
+                if (newName && newName.trim() !== '' && !musicFolders.some(f => f.name === newName.trim())) {
+                    renameFolder(activeFolderForMenu.name, newName.trim());
+                    folderMenuModal.classList.remove('active');
+                } else if (newName && musicFolders.some(f => f.name === newName.trim())) {
+                    alert('A folder with that name already exists.');
+                }
+            }
+        });
+
+        deleteFolderOption.addEventListener('click', () => {
+            if (activeFolderForMenu && confirm(`Are you sure you want to delete the folder "${activeFolderForMenu.name}"?`)) {
+                deleteFolder(activeFolderForMenu.name);
+                folderMenuModal.classList.remove('active');
+            }
+        });
+
+        function showFolderModalBar(song = null) {
+            currentSongToAdd = song;
+            folderModalBar.classList.add('active');
+            folderListModal.innerHTML = '';
+
+            if (musicFolders.length > 0) {
+                folderListModal.classList.remove('hidden-element');
+                createFolderSection.classList.remove('hidden-element');
+                folderModalTitle.textContent = song ? 'Add song to a folder' : 'Your Folders';
+                musicFolders.forEach(folder => {
+                    const folderItem = document.createElement('div');
+                    folderItem.classList.add('folder-item-modal');
+                    folderItem.innerHTML = `<img src="folder.png" alt="Folder Icon" style="width: 20px; margin-right: 10px;"><span>${folder.name}</span>`;
+                    folderItem.addEventListener('click', () => {
+                        if (currentSongToAdd) {
+                            addSongToFolder(currentSongToAdd, folder.name);
+                        }
+                    });
+                    folderListModal.appendChild(folderItem);
+                });
+            } else {
+                folderListModal.classList.add('hidden-element');
+                createFolderSection.classList.remove('hidden-element');
+                folderModalTitle.textContent = 'Add your first folder';
+            }
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                navButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                searchSidebar.classList.remove('active');
+                folderModalBar.classList.remove('active');
+                songMenuModal.classList.remove('active');
+                folderMenuModal.classList.remove('active');
+
+                let bgImage = "url('background.jpg')";
+
+                if (button.id === 'onlineBtn') {
+                    setActiveScreen('mediaListScreen');
+                    setTopNavSubHeading('For You');
+                    bgImage = "url('background.jpg')";
+                } else if (button.id === 'favoriteBtn') {
+                    setActiveScreen('favoriteSongsScreen');
+                    setTopNavSubHeading('Favorite Songs');
+                    renderFavouriteSongs();
+                    bgImage = "url('background3.jpg')";
+                } else if (button.id === 'offlineBtn') {
+                    alert("This feature is coming soon!");
+                    bgImage = document.body.style.backgroundImage;
+                } else if (button.id === 'historyBtn') {
+                    setActiveScreen('historyScreen');
+                    setTopNavSubHeading('History');
+                    renderFullHistory();
+                    bgImage = "url('background2.jpg')";
+                } else if (button.id === 'folderBtn') {
+                    setActiveScreen('folderScreen');
+                    setTopNavSubHeading('Your Folders');
+                    renderFolders();
+                    bgImage = "url('background4.jpg')";
+                }
+                document.body.style.backgroundImage = bgImage;
+            });
+        });
+
+        // Fisher-Yates shuffle algorithm
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        async function fetchForYouSongs() {
+            forYouSongsGrid.innerHTML = '';
+            forYouLoader.classList.add('active');
+
+            const tags = ['chill', 'relax', 'study', 'party', 'mood'];
+            let allSongs = [];
+
+            for (const tag of tags) {
+                try {
+                    // iTunes API: term=tag, media=music
+                    const response = await fetch(`${API_URL}?term=${encodeURIComponent(tag)}&media=music&limit=10`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    if (data.results && data.results.length > 0) {
+                        const mappedResults = data.results.map(item => ({
+                            id: item.trackId,
+                            name: item.trackName,
+                            artist: item.artistName,
+                            icon: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '600x600bb') : 'songs.png',
+                            url: item.previewUrl
+                        }));
+                        allSongs.push(...mappedResults);
+                    }
+                } catch (error) {
+                    console.error(`Failed to fetch songs for tag "${tag}":`, error);
+                }
+            }
+
+            if (allSongs.length > 0) {
+                shuffleArray(allSongs);
+                const randomSongs = allSongs.slice(0, 20);
+                renderForYouSongs(randomSongs);
+            } else {
+                forYouSongsGrid.innerHTML = `<div class="empty-state"><img src="folder2.png" alt="Empty" class="icon-img"><span>Failed to load songs. Please check your internet connection.</span></div>`;
+            }
+
+            forYouLoader.classList.remove('active');
+        }
+
+        async function fetchMusicByTag(tag, targetElement) {
+            const isHorizontal = targetElement.classList.contains('media-list-horizontal');
+
+            // iTunes API: term=tag, media=music
+            const url = `${API_URL}?term=${encodeURIComponent(tag)}&media=music&limit=25`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    const mappedResults = data.results.map(item => ({
+                        id: item.trackId,
+                        name: item.trackName,
+                        artist: item.artistName,
+                        icon: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '600x600bb') : 'songs.png',
+                        url: item.previewUrl
+                    }));
+                    renderSongsList(targetElement, mappedResults, !isHorizontal);
+                } else {
+                    targetElement.innerHTML = `<p class="no-media-message">No results found for "${tag}".</p>`;
+                }
+            } catch (error) {
+                console.error(`Failed to fetch ${tag} songs:`, error);
+                targetElement.innerHTML = `<p class="no-media-message">Failed to load songs.</p>`;
+            }
+        }
+
+        function renderForYouSongs(results) {
+            forYouSongsGrid.innerHTML = '';
+            results.forEach((item) => {
+                const mediaItem = document.createElement('div');
+                mediaItem.classList.add('media-item-square');
+
+                mediaItem.dataset.id = item.id;
+                mediaItem.dataset.name = item.name;
+                mediaItem.dataset.img = item.icon;
+                mediaItem.dataset.link = item.url;
+                mediaItem.dataset.artist = item.artist;
+
+                const isLoved = isFavourite(item.id);
+
+                const title = item.name.length > 22 ? `${item.name.substring(0, 19)}...` : item.name;
+                const artist = item.artist.length > 22 ? `${item.artist.substring(0, 19)}...` : item.artist;
+
+                mediaItem.innerHTML = `
+                    <div class="media-item-square-content" style="background-image: url('${item.icon}')">
+                        <div class="media-item-square-info">
+                            <span class="media-title">${title}</span>
+                            <span class="media-artist">${artist}</span>
+                        </div>
+                    </div>
+                    <div class="media-item-square-actions">
+                        <button class="action-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button>
+                        <button class="action-btn love-btn ${isLoved ? 'loved' : ''}"><i class="fas fa-heart"></i></button>
+                    </div>
+                `;
+                mediaItem.addEventListener('click', (e) => {
+                    const songData = {
+                        id: mediaItem.dataset.id,
+                        name: mediaItem.dataset.name,
+                        img: mediaItem.dataset.img,
+                        link: mediaItem.dataset.link,
+                        artist: mediaItem.dataset.artist
+                    };
+                    if (e.target.closest('.love-btn')) {
+                        toggleFavourite(songData, e.target.closest('.love-btn'));
+                    } else if (e.target.closest('.menu-btn')) {
+                        showSongMenuModal(songData);
+                    } else {
+                        playOnlineSong(songData);
+                    }
+                });
+
+                forYouSongsGrid.appendChild(mediaItem);
+            });
+        }
+
+        function renderSongsList(targetElement, results, isDynamic = false) {
+            targetElement.innerHTML = '';
+            results.forEach((item) => {
+                const mediaItem = document.createElement('div');
+                mediaItem.classList.add(isDynamic ? 'media-item-dynamic-bg' : 'media-item-static-bg');
+
+                mediaItem.dataset.id = item.id;
+                mediaItem.dataset.name = item.name;
+                mediaItem.dataset.img = item.icon;
+                mediaItem.dataset.link = item.url;
+                mediaItem.dataset.artist = item.artist;
+
+                if (isDynamic) {
+                    mediaItem.style.setProperty('--bg-image', `url(${item.icon})`);
+                }
+
+                const isLoved = isFavourite(item.id);
+
+                const title = item.name.length > 22 ? `${item.name.substring(0, 19)}...` : item.name;
+                const artist = item.artist.length > 22 ? `${item.artist.substring(0, 19)}...` : item.artist;
+
+                mediaItem.innerHTML = `
+                    <div class="media-item-content">
+                        <img class="media-item-thumbnail" src="${item.icon}" alt="${item.name}">
+                        <div class="media-item-info">
+                            <span class="media-title">${title}</span>
+                            <span class="media-artist">${artist}</span>
+                        </div>
+                        <div class="media-item-actions">
+                            <button class="action-btn love-btn ${isLoved ? 'loved' : ''}"><i class="fas fa-heart"></i></button>
+                            <button class="action-btn menu-btn"><i class="fas fa-ellipsis-v"></i></button>
+                        </div>
+                    </div>
+                `;
+                mediaItem.addEventListener('click', (e) => {
+                    const songData = {
+                        id: mediaItem.dataset.id,
+                        name: mediaItem.dataset.name,
+                        img: mediaItem.dataset.img,
+                        link: mediaItem.dataset.link,
+                        artist: mediaItem.dataset.artist
+                    };
+                    if (e.target.closest('.love-btn')) {
+                        toggleFavourite(songData, e.target.closest('.love-btn'));
+                    } else if (e.target.closest('.menu-btn')) {
+                        showSongMenuModal(songData);
+                    } else {
+                        playOnlineSong(songData);
+                    }
+                });
+
+                targetElement.appendChild(mediaItem);
+            });
+        }
+
+        async function renderUserGenres() {
+            genreSongsContainer.innerHTML = '';
+            const userGenres = JSON.parse(localStorage.getItem(USER_GENRES_KEY) || '[]');
+
+            if (userGenres.length > 0) {
+                const fetchPromises = userGenres.map(async (genre) => {
+                    const genreTitle = document.createElement('p');
+                    genreTitle.classList.add('media-tag');
+                    genreTitle.textContent = genre;
+                    genreSongsContainer.appendChild(genreTitle);
+
+                    const genreList = document.createElement('div');
+                    genreList.classList.add('media-list');
+                    genreSongsContainer.appendChild(genreList);
+
+                    await fetchMusicByTag(genre, genreList);
+                });
+                await Promise.all(fetchPromises);
+
+            } else {
+                genreSongsContainer.innerHTML = `<div class="empty-state"><img src="folder2.png" alt="Empty" class="icon-img"><span>No genres selected. Please go back to the welcome screen to choose.</span></div>`;
+            }
+        }
+
+
+        function showSongMenuModal(songData) {
+            activeSongForMenu = songData;
+            songMenuTitle.textContent = "Settings";
+
+            const isFav = isFavourite(songData.id);
+            toggleFavoriteOption.innerHTML = `<i class="fas fa-heart"></i><span>${isFav ? 'Remove from Favourites' : 'Add to Favourites'}</span>`;
+
+            const isFolderSong = getFolderForSong(songData.id);
+            toggleFolderOption.innerHTML = `<i class="fas fa-folder-plus"></i><span>${isFolderSong ? 'Remove from Folder' : 'Add to Folder'}</span>`;
+
+            songMenuModal.classList.add('active');
+        }
+
+        function playOnlineSong(songData) {
+            const allSongs = [...(recentSongs || []), ...(favouriteSongs || []), ...[songData], ...musicFolders.flatMap(f => f.songs || [])];
+
+            const uniqueSongsMap = new Map();
+            allSongs.forEach(s => uniqueSongsMap.set(s.id, s));
+            const uniqueSongsList = Array.from(uniqueSongsMap.values());
+
+            localStorage.setItem(MEDIA_STORAGE_KEY, JSON.stringify(uniqueSongsList));
+
+            const songIndex = uniqueSongsList.findIndex(s => s.id === songData.id);
+            if (songIndex !== -1) {
+                const playbackState = {
+                    currentIndex: songIndex, isPlaying: true, currentTime: 0, volume: 1, isLooping: false,
+                };
+                localStorage.setItem('playbackState', JSON.stringify(playbackState));
+            }
+
+            addSongToHistory(songData);
+            window.location.href = 'player.html';
+        }
+
+        // --- All Storage and Render Functions (History, Favourites, Folders) ---
+
+        // FOLDERS
+        function createFolder(name) { musicFolders.push({ name: name, songs: [] }); saveFoldersToStorage(); renderFolders(); }
+        function renameFolder(oldName, newName) { const folder = musicFolders.find(f => f.name === oldName); if (folder) { folder.name = newName; saveFoldersToStorage(); renderFolders(); alert(`Folder renamed.`); } }
+        function deleteFolder(name) { musicFolders = musicFolders.filter(f => f.name !== name); saveFoldersToStorage(); renderFolders(); }
+        function addSongToFolder(song, folderName) { const folder = musicFolders.find(f => f.name === folderName); if (folder && !folder.songs.some(s => s.id === song.id)) { folder.songs.push(song); saveFoldersToStorage(); alert(`Song added to ${folderName}.`); } else { alert(`Song is already in ${folderName}.`); } folderModalBar.classList.remove('active'); }
+        function loadFoldersFromStorage() { const s = localStorage.getItem(FOLDERS_KEY); musicFolders = s ? JSON.parse(s) : []; }
+        function saveFoldersToStorage() { localStorage.setItem(FOLDERS_KEY, JSON.stringify(musicFolders)); }
+        function getFolderForSong(songId) { return musicFolders.find(f => f.songs.some(s => s.id === songId)) || null; }
+        function renderFolders() { folderList.innerHTML = ''; if (musicFolders.length === 0) { folderList.innerHTML = `<div class="empty-state"><img src="folder2.png" alt="Empty" class="icon-img"><span>No folders found.</span></div>`; } else { musicFolders.forEach(folder => { const item = document.createElement('div'); item.className = 'folder-item'; item.dataset.name = folder.name; item.innerHTML = `<span class="folder-song-count">${folder.songs.length}</span><img src="folder.png" alt="Folder" class="folder-icon-img"><span class="folder-name">${folder.name}</span><button class="action-btn folder-menu-btn"><i class="fas fa-ellipsis-v"></i></button>`; item.addEventListener('click', (e) => { if (e.target.closest('.folder-menu-btn')) { showFolderMenuModal(folder); } else { showSongsInFolder(folder); } }); folderList.appendChild(item); }); } }
+        function showFolderMenuModal(folderData) { activeFolderForMenu = folderData; folderMenuTitle.textContent = "Settings"; folderMenuModal.classList.add('active'); }
+        function showSongsInFolder(folder) { setActiveScreen('songsInFolderScreen'); setTopNavSubHeading(`Folder: ${folder.name}`); folderSongsTitle.textContent = folder.name; if (folder.songs.length === 0) { folderSongsList.innerHTML = `<div class="empty-state"><img src="folder2.png" alt="Empty" class="icon-img"><span>This folder is empty.</span></div>`; } else { renderSongsList(folderSongsList, folder.songs.map(s => ({ id: s.id, name: s.name, icon: s.img, url: s.link, artist: s.artist }))); } }
+
+        // RECENT SONGS (HISTORY)
+        function loadRecentSongsFromStorage() { const s = localStorage.getItem(RECENT_SONGS_KEY); recentSongs = s ? JSON.parse(s) : []; }
+        function saveRecentSongsToStorage() { localStorage.setItem(RECENT_SONGS_KEY, JSON.stringify(recentSongs)); }
+        function addSongToHistory(song) { recentSongs = recentSongs.filter(s => s.id !== song.id); recentSongs.unshift(song); if (recentSongs.length > 20) { recentSongs = recentSongs.slice(0, 20); } saveRecentSongsToStorage(); }
+        function renderFullHistory() { fullHistoryList.innerHTML = ''; if (recentSongs.length === 0) { fullHistoryList.innerHTML = `<div class="empty-state"><img src="folder2.png" alt="Empty" class="icon-img"><span>No recent songs.</span></div>`; } else { renderSongsList(fullHistoryList, recentSongs.map(s => ({ id: s.id, name: s.name, icon: s.img, url: s.link, artist: s.artist }))); } renderFullSearchHistory(); }
+
+        // SEARCH HISTORY
+        function loadSearchHistoryFromStorage() { const s = localStorage.getItem(SEARCH_HISTORY_KEY); searchHistory = s ? JSON.parse(s) : []; }
+        function saveSearchHistoryToStorage() { localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(searchHistory)); }
+        function addSearchQueryToHistory(query) { if (query) { const lq = query.toLowerCase(); searchHistory = searchHistory.filter(q => q.toLowerCase() !== lq); searchHistory.unshift(query); if (searchHistory.length > 19) searchHistory.pop(); saveSearchHistoryToStorage(); } }
+        function removeSearchQueryFromHistory(query) { searchHistory = searchHistory.filter(q => q !== query); saveSearchHistoryToStorage(); renderSearchHistory(); renderFullSearchHistory(); }
+        function renderSearchHistory() { searchHistoryList.innerHTML = ''; if (searchHistory.length === 0) { searchHistoryList.innerHTML = `<div class="empty-state" style="margin-top:0;"><img src="folder2.png" alt="Empty" class="icon-img"><span>No recent searches.</span></div>`; return; } searchHistory.forEach(query => { const item = document.createElement('div'); item.className = 'history-item'; item.dataset.query = query; item.innerHTML = `<div class="history-item-content"><i class="fas fa-history"></i><span>${query}</span></div><button class="remove-history-btn"><i class="fas fa-times"></i></button>`; searchHistoryList.appendChild(item); }); searchHistoryList.classList.remove('hidden-element'); }
+        function renderFullSearchHistory() { fullSearchHistoryList.innerHTML = ''; if (searchHistory.length === 0) { fullSearchHistoryList.innerHTML = `<div class="empty-state"><img src="folder2.png" alt="Empty" class="icon-img"><span>No recent searches.</span></div>`; return; } searchHistory.forEach(query => { const item = document.createElement('div'); item.className = 'history-item'; item.dataset.query = query; item.innerHTML = `<div class="history-item-content"><i class="fas fa-history"></i><span>${query}</span></div><button class="remove-history-btn"><i class="fas fa-times"></i></button>`; fullSearchHistoryList.appendChild(item); }); }
+        fullSearchHistoryList.addEventListener('click', (e) => { if (e.target.closest('.history-item') && !e.target.closest('.remove-history-btn')) { const q = e.target.closest('.history-item').dataset.query; searchSidebarInput.value = q; openSearchSidebarBtn.click(); searchSidebarBtn.click(); } if (e.target.closest('.remove-history-btn')) { removeSearchQueryFromHistory(e.target.closest('.history-item').dataset.query); } });
+
+        // FAVOURITES
+        function loadFavouriteSongsFromStorage() { const s = localStorage.getItem(FAVOURITE_SONGS_KEY); favouriteSongs = s ? JSON.parse(s) : []; }
+        function saveFavouriteSongsToStorage() { localStorage.setItem(FAVOURITE_SONGS_KEY, JSON.stringify(favouriteSongs)); }
+        function isFavourite(songId) { return favouriteSongs.some(song => song.id === songId); }
+        function toggleFavourite(song, loveButton) { const index = favouriteSongs.findIndex(s => s.id === song.id); if (index > -1) { favouriteSongs.splice(index, 1); if (loveButton) loveButton.classList.remove('loved'); alert('Removed from favourites!'); } else { favouriteSongs.unshift(song); if (loveButton) loveButton.classList.add('loved'); alert('Added to favourites!'); } saveFavouriteSongsToStorage(); }
+        function renderFavouriteSongs() { favoriteSongsList.innerHTML = ''; if (favouriteSongs.length === 0) { favoriteSongsList.innerHTML = `<div class="empty-state"><img src="folder2.png" alt="Empty" class="icon-img"><span>No favourite songs yet.</span></div>`; } else { renderSongsList(favoriteSongsList, favouriteSongs.map(s => ({ id: s.id, name: s.name, icon: s.img, url: s.link, artist: s.artist }))); } }
+
+        // VOICE SEARCH
+        voiceSearchBtn.addEventListener('click', () => {
+            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'en-US'; recognition.interimResults = false; recognition.maxAlternatives = 1;
+                voiceToTextUI.classList.add('active');
+                voiceToTextStatus.textContent = 'What do you want to say?';
+                recognition.start();
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    voiceToTextStatus.textContent = speechResult;
+                    setTimeout(() => {
+                        searchSidebarInput.value = speechResult;
+                        openSearchSidebarBtn.click();
+                        searchSidebarBtn.click();
+                        voiceToTextUI.classList.remove('active');
+                    }, 1000);
+                };
+                recognition.onspeechend = () => { recognition.stop(); };
+                recognition.onerror = (event) => {
+                    voiceToTextStatus.textContent = `Error: ${event.error}`;
+                    setTimeout(() => { voiceToTextUI.classList.remove('active'); }, 2000);
+                };
+            } else {
+                alert('Your browser does not support the Web Speech API.');
+            }
+        });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }, (err) => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

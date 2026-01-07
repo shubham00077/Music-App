@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Music Ally</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --primary-bg: #ffffff;
+            --secondary-bg: #e2e8f0;
+            --text-color: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #cbd5e1;
+            --accent-color: #1a73e8;
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --spacing-sm: 10px;
+            --spacing-md: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 70px;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        .main-content-container {
+            padding-top: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+        }
+
+        .hidden-element {
+            display: none !important;
+        }
+
+        /* New styles for the first welcome screen */
+        #welcomeScreen1 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #a8c0ff 0%, #3f2b96 100%);
+            /* Perfect new background */
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+            color: #fff;
+        }
+
+        .welcome-header-1 {
+            width: 100%;
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .welcome-header-1 h1 {
+            font-size: 1.2rem;
+            color: #fff;
+            font-weight: 600;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: welcome-text-cycle 12s infinite;
+            opacity: 0;
+            white-space: nowrap;
+        }
+
+        .welcome-header-1 h1:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .welcome-header-1 h1:nth-child(2) {
+            animation-delay: 3s;
+        }
+
+        .welcome-header-1 h1:nth-child(3) {
+            animation-delay: 6s;
+        }
+
+        .welcome-header-1 h1:nth-child(4) {
+            animation-delay: 9s;
+        }
+
+        @keyframes welcome-text-cycle {
+
+            0%,
+            5% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            10%,
+            25% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            30%,
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 auto;
+            text-align: left;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .feature-item i {
+            color: #fff;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-1-footer {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .welcome-1-footer button {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            background-color: #fff;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-1-footer a {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+        }
+
+        .welcome-1-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Welcome Screen Styles */
+        #welcomeScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #ffffff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        #welcomeScreenTopText {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            text-align: center;
+            padding-top: 10px;
+            height: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #welcomeScreenTopText span {
+            display: block;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            animation: text-fade-in-out 12s infinite;
+            font-weight: 500;
+        }
+
+        #welcomeScreenTopText span:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        #welcomeScreenTopText span:nth-child(2) {
+            animation-delay: 3s;
+        }
+
+        #welcomeScreenTopText span:nth-child(3) {
+            animation-delay: 6s;
+        }
+
+        #welcomeScreenTopText span:nth-child(4) {
+            animation-delay: 9s;
+        }
+
+        @keyframes text-fade-in-out {
+
+            0%,
+            5% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            10%,
+            25% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            30%,
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        .welcome-header {
+            text-align: left;
+            padding: 20px 0;
+        }
+
+        .welcome-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        .welcome-header p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .selection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        #selectionCount {
+            margin-bottom: 0;
+        }
+
+        #selectAllBtn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #selectAllBtn::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-secondary);
+            border-radius: 5px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        #selectAllBtn.selected::before {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        #selectAllBtn.selected::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: white;
+            font-size: 12px;
+            position: absolute;
+        }
+
+        #songTypeGrid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px 0;
+            flex-grow: 1;
+        }
+
+        .song-type-button {
+            padding: 8px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-size: 0.9rem;
+            background-color: transparent;
+            position: relative;
+            padding-left: 35px;
+            /* Make space for the image */
+        }
+
+        .song-type-button::before {
+            content: '';
+            display: block;
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            /* Adjust size as needed */
+            height: 18px;
+            /* Adjust size as needed */
+            background-image: url('songs.png');
+            /* The path to your image */
+            background-size: contain;
+            background-repeat: no-repeat;
+            filter: grayscale(100%);
+            transition: filter 0.2s;
+        }
+
+        .song-type-button:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .song-type-button.selected {
+            background-color: var(--accent-color);
+            color: #fff;
+            border-color: var(--accent-color);
+        }
+
+        .song-type-button.selected::before {
+            filter: grayscale(0%) brightness(0) invert(1);
+        }
+
+
+        .welcome-footer {
+            padding: 20px 0 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #welcomeSkipBtn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 12px 0;
+        }
+
+        #welcomeSkipBtn:hover {
+            color: var(--text-color);
+        }
+
+        #welcomeNextBtn {
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+        }
+
+        #welcomeNextBtn:hover {
+            background-color: #1a5ab5;
+        }
+
+        #welcomeNextBtn .loader-dots {
+            display: none;
+            position: absolute;
+        }
+
+        #welcomeNextBtn.loading .loader-dots {
+            display: flex;
+        }
+
+        #welcomeNextBtn.loading span {
+            visibility: hidden;
+        }
+
+        .loader-dots .dot {
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            margin: 0 4px;
+            animation: bounce-loader 0.6s infinite alternate;
+        }
+
+        .loader-dots .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loader-dots .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce-loader {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-8px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .bottom-nav-button {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="welcomeScreen1">
+        <div class="welcome-header-1">
+            <h1>Welcome to Music Ally</h1>
+            <h1>All songs available</h1>
+            <h1>MP3 support</h1>
+            <h1>Enjoy music for free</h1>
+        </div>
+
+        <div class="welcome-features-container">
+            <h2 style="font-size: 1.5rem; margin-bottom: 20px;">Features</h2>
+            <ul class="feature-list">
+                <li class="feature-item"><i class="fas fa-music"></i>All songs available</li>
+                <li class="feature-item"><i class="fas fa-file-audio"></i>MP3 support</li>
+                <li class="feature-item"><i class="fas fa-ad"></i>No ads</li>
+                <li class="feature-item"><i class="fas fa-infinity"></i>No limits</li>
+                <li class="feature-item"><i class="fas fa-folder-plus"></i>Create songs folder</li>
+                <li class="feature-item"><i class="fas fa-volume-up"></i>Volume controls available</li>
+                <li class="feature-item"><i class="fas fa-clock"></i>Set a time before sleep</li>
+            </ul>
+        </div>
+
+        <div class="welcome-1-footer">
+            <button id="getStartedBtn">Get Started</button>
+            <a href="#" id="privacyPolicyLink">Privacy Policy</a>
+        </div>
+    </div>
+
+    <div id="welcomeScreen" class="hidden-element">
+        <div id="welcomeScreenTopText">
+            <span>Wellcome to Music Ally</span>
+            <span>Play any songs for freee</span>
+            <span>All songs available</span>
+            <span>No ads</span>
+        </div>
+        <div class="welcome-header">
+            <h1>What kind of songs do you like?</h1>
+        </div>
+        <div class="selection-header">
+            <p id="selectionCount">Select your favorite genres</p>
+            <button id="selectAllBtn"></button>
+        </div>
+        <div id="songTypeGrid"></div>
+        <div class="welcome-footer">
+            <button id="welcomeSkipBtn">Skip</button>
+            <button id="welcomeNextBtn"><span>Next</span>
+                <div class="loader-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </button>
+        </div>
+    </div>
+    <script>
+        const WELCOME_COMPLETED_KEY = 'welcomeCompleted';
+        const USER_GENRES_KEY = 'userSelectedGenres';
+        const FIRST_WELCOME_COMPLETED_KEY = 'firstWelcomeCompleted';
+
+        const getStartedBtn = document.getElementById('getStartedBtn');
+        const welcomeScreen1 = document.getElementById('welcomeScreen1');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const songTypeGrid = document.getElementById('songTypeGrid');
+        const selectionCount = document.getElementById('selectionCount');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const nextBtn = document.getElementById('welcomeNextBtn');
+        const skipBtn = document.getElementById('welcomeSkipBtn');
+
+        const songTypes = [
+            'DJ', 'Romantic', 'Workout', 'Sad', 'Pop', 'Hip Hop', 'Rock', 'Electronic',
+            'Classical', 'Jazz', 'Blues', 'Country', 'Reggae', 'Metal', 'Indie', 'Folk',
+            'Lo-fi', 'Ambient', 'R&B'
+        ];
+
+        let selectedGenres = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const hasCompletedFirstWelcome = localStorage.getItem(FIRST_WELCOME_COMPLETED_KEY);
+            const hasCompletedWelcome = localStorage.getItem(WELCOME_COMPLETED_KEY);
+
+            if (hasCompletedWelcome) {
+                // If welcome is already completed, redirect to the main app
+                window.location.href = 'Home.html';
+            } else if (hasCompletedFirstWelcome) {
+                // Show the genre selection screen
+                welcomeScreen1.classList.add('hidden-element');
+                welcomeScreen.classList.remove('hidden-element');
+                setupWelcomeScreen();
+            }
+        });
+
+        getStartedBtn.addEventListener('click', () => {
+            localStorage.setItem(FIRST_WELCOME_COMPLETED_KEY, 'true');
+            welcomeScreen1.classList.add('hidden-element');
+            welcomeScreen.classList.remove('hidden-element');
+            setupWelcomeScreen();
+        });
+
+        function setupWelcomeScreen() {
+            songTypeGrid.innerHTML = '';
+            songTypes.forEach(type => {
+                const button = document.createElement('button');
+                button.classList.add('song-type-button');
+                button.textContent = type;
+                button.dataset.genre = type;
+                songTypeGrid.appendChild(button);
+            });
+
+            const updateSelectionCount = () => {
+                const allButtons = document.querySelectorAll('.song-type-button');
+                const count = document.querySelectorAll('.song-type-button.selected').length;
+                selectedGenres = Array.from(document.querySelectorAll('.song-type-button.selected')).map(btn => btn.dataset.genre);
+
+                if (count === allButtons.length) {
+                    selectAllBtn.classList.add('selected');
+                } else {
+                    selectAllBtn.classList.remove('selected');
+                }
+
+                if (count > 0) {
+                    selectionCount.textContent = `${count} genre${count !== 1 ? 's' : ''} selected`;
+                } else {
+                    selectionCount.textContent = 'Select your favorite genres';
+                }
+            };
+
+            songTypeGrid.addEventListener('click', (e) => {
+                if (e.target.classList.contains('song-type-button')) {
+                    e.target.classList.toggle('selected');
+                    updateSelectionCount();
+                }
+            });
+
+            selectAllBtn.addEventListener('click', () => {
+                const allButtons = document.querySelectorAll('.song-type-button');
+                const allSelected = selectedGenres.length === allButtons.length;
+
+                allButtons.forEach(button => {
+                    if (allSelected) {
+                        button.classList.remove('selected');
+                    } else {
+                        button.classList.add('selected');
+                    }
+                });
+                updateSelectionCount();
+            });
+
+            const completeWelcome = () => {
+                localStorage.setItem(WELCOME_COMPLETED_KEY, 'true');
+                window.location.href = 'Home.html';
+            };
+
+            skipBtn.addEventListener('click', () => {
+                localStorage.setItem(USER_GENRES_KEY, JSON.stringify(['Romantic', 'Remix', 'Workout', 'Pop']));
+                completeWelcome();
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (selectedGenres.length === 0) {
+                    alert('Please select at least one type of song.');
+                    return;
+                }
+                localStorage.setItem(USER_GENRES_KEY, JSON.stringify(selectedGenres));
+                completeWelcome();
+            });
+        }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }, (err) => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

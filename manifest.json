@@ -1,0 +1,21 @@
+{
+  "name": "Dynamic Media Player",
+  "short_name": "Music",
+  "start_url": "./Home.html",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#ffffff",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
